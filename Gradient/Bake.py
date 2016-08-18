@@ -67,7 +67,7 @@ class Bake:
 
         self.progressMax = 0
         self.progressCurrent = 0
-        self.progressBar = QtGui.QProgressBar()
+        self.progressBar = None
 
     def SetStart(self,
                  fromPoint=False,
@@ -137,6 +137,10 @@ class Bake:
         return self.mirror
 
     # Progress
+    def ResetProgressBar(self):
+        if self.progressBar is not None:
+            self.progressBar.reset()
+
     def SetProgressMax(self):
         self.progressCurrent = 0
         self.progressMax = 0
@@ -145,9 +149,14 @@ class Bake:
         for obj in self.objects:
             self.progressMax += len(obj.vtx)
 
-        if self.progressBar:
+        if self.progressBar is not None:
             self.progressBar.setRange(0, self.progressMax)
             self.progressBar.setValue(0)
+
+    def TickProgressBar(self):
+        self.progressCurrent += 1
+        if self.progressBar is not None:
+            self.progressBar.setValue(self.progressCurrent)
 
     # Bake Helpers
     def PaintColors(self, vertex, value):
@@ -210,8 +219,7 @@ class Bake:
         self.SetProgressMax()
         for obj in self.objects:
             for i in range(len(obj.vtx)):
-                self.progressCurrent += 1
-                self.progressBar.setValue(self.progressCurrent)
+                self.TickProgressBar()
 
                 vColor = obj.vtx[i].getColor()
                 """@type : dt.Color"""
@@ -222,7 +230,7 @@ class Bake:
                 vColor.a = 1
 
                 obj.vtx[i].setColor(vColor)
-        self.progressBar.reset()
+        self.ResetProgressBar()
 
     def bakeWhite(self):
         if self.objects == "" or self.objects is None:
@@ -230,8 +238,7 @@ class Bake:
         self.SetProgressMax()
         for obj in self.objects:
             for i in range(len(obj.vtx)):
-                self.progressCurrent += 1
-                self.progressBar.setValue(self.progressCurrent)
+                self.TickProgressBar()
 
                 vColor = obj.vtx[i].getColor()
                 """@type : dt.Color"""
@@ -242,7 +249,7 @@ class Bake:
                 vColor.a = 1
 
                 obj.vtx[i].setColor(vColor)
-        self.progressBar.reset()
+        self.TickProgressBar()
 
     def RadialBounds(self,
                      easing=Utils.Easing.Linear,
@@ -260,8 +267,7 @@ class Bake:
             """@type: dt.BoundingBox"""
 
             for i in range(len(obj.vtx)):
-                self.progressCurrent += 1
-                self.progressBar.setValue(self.progressCurrent)
+                self.TickProgressBar()
                 vertexDir = points[i] - point
                 """@type: dt.Vector"""
 
@@ -293,7 +299,7 @@ class Bake:
 
                 vertex = obj.vtx[i]
                 self.PaintColors(vertex, value)
-        self.progressBar.reset()
+        self.ResetProgressBar()
 
     def SphericalBounds(self,
                         easing=Utils.Easing.Linear,
@@ -311,8 +317,7 @@ class Bake:
             """@type: dt.BoundingBox"""
 
             for i in range(len(obj.vtx)):
-                self.progressCurrent += 1
-                self.progressBar.setValue(self.progressCurrent)
+                self.TickProgressBar()
                 vertexDir = points[i] - point
                 """@type: dt.Vector"""
 
@@ -344,7 +349,7 @@ class Bake:
 
                 vertex = obj.vtx[i]
                 self.PaintColors(vertex, value)
-        self.progressBar.reset()
+        self.ResetProgressBar()
 
     def BoxBounds(self,
                   easing=Utils.Easing.Linear,
@@ -363,8 +368,7 @@ class Bake:
             doubleLength = (bounds.width() + bounds.height() + bounds.depth()) / 3.0 * 3.0
 
             for i in range(len(obj.vtx)):
-                self.progressCurrent += 1
-                self.progressBar.setValue(self.progressCurrent)
+                self.TickProgressBar()
                 vertexDir = points[i] - point
                 """@type: dt.Vector"""
 
@@ -400,7 +404,7 @@ class Bake:
 
                 vertex = obj.vtx[i]
                 self.PaintColors(vertex, value)
-        self.progressBar.reset()
+        self.ResetProgressBar()
 
     def Branching(self, easing=None):
         # TODO:

@@ -494,4 +494,6 @@ class BakeTool(MayaQWidgetDockableMixin, QtGui.QDialog):
         bake_button.clicked.connect(bake)
 
     def progressBar(self):
-        self.inner_layout.addWidget(self.Bake.progressBar)
+        progress_bar = QtGui.QProgressBar()
+        self.inner_layout.addWidget(progress_bar)
+        self.Bake.progressBar = progress_bar
