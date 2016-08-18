@@ -1,9 +1,9 @@
 from PySide import QtGui, QtCore
 from maya.app.general.mayaMixin import MayaQDockWidget
 from maya.app.general.mayaMixin import MayaQWidgetDockableMixin
-from VertexColor.Gradient import Bake
-from Utils.UI import getMayaWindow
-from Utils import Easing
+from Maya_VertexColor.Gradient import Bake
+from Maya_UtilLib.UI import getMayaWindow
+from Maya_UtilLib import Easing
 import pymel.core as pc
 
 
@@ -494,6 +494,4 @@ class BakeTool(MayaQWidgetDockableMixin, QtGui.QDialog):
         bake_button.clicked.connect(bake)
 
     def progressBar(self):
-        progress_bar = QtGui.QProgressBar()
-        self.inner_layout.addWidget(progress_bar)
-        self.Bake.progressBar = progress_bar
+        self.inner_layout.addWidget(self.Bake.progressBar)

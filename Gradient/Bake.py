@@ -1,6 +1,6 @@
 from PySide import QtGui, QtCore
 from pymel.core import *
-import Utils.Easing
+import Maya_UtilLib as Utils
 import math
 
 # TODO:
@@ -67,7 +67,7 @@ class Bake:
 
         self.progressMax = 0
         self.progressCurrent = 0
-        self.progressBar = None
+        self.progressBar = QtGui.QProgressBar()
 
     def SetStart(self,
                  fromPoint=False,
