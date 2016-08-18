@@ -159,6 +159,17 @@ class Bake:
             self.progressBar.setValue(self.progressCurrent)
 
     # Bake Helpers
+    def CreateColorSet(self):
+        try:
+            polyColorSet(delete=True, colorSet='bakeColor')
+        except:
+            pass
+        polyColorSet(create=True, colorSet='bakeColor')
+        polyColorPerVertex(rel=True, cdo=True)
+
+    def SetColorSet(self):
+        polyColorSet(currentColorSet=True, colorSet='bakeColor')
+
     def PaintColors(self, vertex, value):
 
         if value > self.bakeMax:
@@ -230,6 +241,7 @@ class Bake:
                 vColor.a = 1
 
                 obj.vtx[i].setColor(vColor)
+            self.CreateColorSet(obj)
         self.ResetProgressBar()
 
     def bakeWhite(self):
@@ -249,6 +261,7 @@ class Bake:
                 vColor.a = 1
 
                 obj.vtx[i].setColor(vColor)
+            self.CreateColorSet(obj)
         self.TickProgressBar()
 
     def RadialBounds(self,
@@ -259,6 +272,7 @@ class Bake:
         if self.objects == "" or self.objects is None:
             self.objects = ls(selection=True)
 
+        self.CreateColorSet()
         self.SetProgressMax()
         for obj in self.objects:
             points = obj.getPoints(space='world')
@@ -300,6 +314,7 @@ class Bake:
                 vertex = obj.vtx[i]
                 self.PaintColors(vertex, value)
         self.ResetProgressBar()
+        self.SetColorSet()
 
     def SphericalBounds(self,
                         easing=Utils.Easing.Linear,
@@ -309,6 +324,7 @@ class Bake:
         if self.objects == "" or self.objects is None:
             self.objects = ls(selection=True)
 
+        self.CreateColorSet()
         self.SetProgressMax()
         for obj in self.objects:
             points = obj.getPoints(space='world')
@@ -349,7 +365,9 @@ class Bake:
 
                 vertex = obj.vtx[i]
                 self.PaintColors(vertex, value)
+            self.CreateColorSet(obj)
         self.ResetProgressBar()
+        self.SetColorSet()
 
     def BoxBounds(self,
                   easing=Utils.Easing.Linear,
@@ -358,6 +376,7 @@ class Bake:
         if self.objects == "" or self.objects is None:
             self.objects = ls(selection=True)
 
+        self.CreateColorSet()
         self.SetProgressMax()
         for obj in self.objects:
             points = obj.getPoints(space='world')
@@ -404,7 +423,9 @@ class Bake:
 
                 vertex = obj.vtx[i]
                 self.PaintColors(vertex, value)
+            self.CreateColorSet(obj)
         self.ResetProgressBar()
+        self.SetColorSet()
 
     def Branching(self, easing=None):
         # TODO:
