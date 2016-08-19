@@ -7,12 +7,16 @@ from Maya_UtilLib import Easing
 import pymel.core as pc
 
 
+def Open(*args):
+    BakeTool()
+
+
 class BakeTool(MayaQWidgetDockableMixin, QtGui.QDialog):
     toolName = 'vertexColorWidget'
     """
     VertexColor UI Class
     """
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, *args):
         # creating main Bake object
         self.Bake = Bake.Bake()
         self.selected = []
