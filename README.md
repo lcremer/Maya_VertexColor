@@ -22,11 +22,20 @@ PYTHONPATH = C:/Users/Leo/Documents/maya/Tools;C:/Users/Leo/Documents/maya/Code/
 If you already have an existing userSetup.py script in your Maya scripts directory append the following.
 If not create an empty userSetup.py script and add the following to the file:
 #--------------------------------------------------------------------------------
+import sys
 import maya.utils as utils
 
-def MayaToolsLoader():
-    import Maya_UtilLib
-    Maya_UtilLib.UI.MainMenu()
+def Loader():
+	try:
+		import Maya_Rigging
+	except:
+		pass
+	try:
+		import Maya_VertexColor
+	except:
+		pass
+	import Maya_UtilLib
+	Maya_UtilLib.Menu.Draw()
 
-utils.executeDeferred('MayaToolsLoader()')
+utils.executeDeferred('Loader()')
 #--------------------------------------------------------------------------------
