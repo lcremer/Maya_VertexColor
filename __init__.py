@@ -1,4 +1,4 @@
-import Gradient
+import Maya_VertexColor.Gradient
 import Maya_UtilLib
 import pymel.core as pm
 from functools import partial

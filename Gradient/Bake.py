@@ -1,4 +1,4 @@
-from PySide import QtGui, QtCore
+from PySide2 import QtGui, QtCore
 from pymel.core import *
 import Maya_UtilLib as Utils
 import math

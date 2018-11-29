@@ -1,4 +1,4 @@
-from PySide import QtGui, QtCore
+from PySide2 import QtGui, QtCore, QtWidgets
 from maya.app.general.mayaMixin import MayaQDockWidget
 from maya.app.general.mayaMixin import MayaQWidgetDockableMixin
 from Maya_VertexColor.Gradient import Bake
@@ -11,7 +11,7 @@ def Open(*args):
     BakeTool()
 
 
-class BakeTool(MayaQWidgetDockableMixin, QtGui.QDialog):
+class BakeTool(MayaQWidgetDockableMixin, QtWidgets.QDialog):
     toolName = 'vertexColorWidget'
     """
     VertexColor UI Class
@@ -39,10 +39,10 @@ class BakeTool(MayaQWidgetDockableMixin, QtGui.QDialog):
         self.setMaximumHeight(300)
 
         # main vertical layout
-        self.main_layout = QtGui.QVBoxLayout()
+        self.main_layout = QtWidgets.QVBoxLayout()
         self.main_layout.setAlignment(QtCore.Qt.AlignTop)
 
-        self.inner_layout = QtGui.QVBoxLayout(self)
+        self.inner_layout = QtWidgets.QVBoxLayout(self)
         self.inner_layout.setAlignment(QtCore.Qt.AlignTop)
 
         self.font = QtGui.QFont()
@@ -91,38 +91,38 @@ class BakeTool(MayaQWidgetDockableMixin, QtGui.QDialog):
                     obj.deleteLater()
 
     def bakeType(self):
-        h_layout = QtGui.QHBoxLayout()
+        h_layout = QtWidgets.QHBoxLayout()
 
         # Name Label
-        type_label = QtGui.QLabel('Type')
+        type_label = QtWidgets.QLabel('Type')
         h_layout.addWidget(type_label)
         # add spacer
-        spacer = QtGui.QSpacerItem(15, 10)
+        spacer = QtWidgets.QSpacerItem(15, 10)
         h_layout.addSpacerItem(spacer)
 
-        self.bake_type_combobox = QtGui.QComboBox()
+        self.bake_type_combobox = QtWidgets.QComboBox()
         self.bake_type_combobox.addItems(['Radial In Bounds', 'Radial Out Bounds', 'Spherical In Bounds', 'Spherical Out Bounds', 'Box Bounds', 'Branching (Coming Soon)'])
 
         h_layout.addWidget(self.bake_type_combobox)
 
         # Name Label
-        easing_label = QtGui.QLabel('Easing')
+        easing_label = QtWidgets.QLabel('Easing')
         h_layout.addWidget(easing_label)
         # add spacer
-        spacer = QtGui.QSpacerItem(15, 10)
+        spacer = QtWidgets.QSpacerItem(15, 10)
         h_layout.addSpacerItem(spacer)
 
-        self.bake_easing_combobox = QtGui.QComboBox()
+        self.bake_easing_combobox = QtWidgets.QComboBox()
         self.bake_easing_combobox.addItems(Easing.EasingList())
         h_layout.addWidget(self.bake_easing_combobox)
 
         self.inner_layout.addLayout(h_layout)
 
     def bakeValues(self):
-        h_layout = QtGui.QHBoxLayout()
+        h_layout = QtWidgets.QHBoxLayout()
 
-        min_label = QtGui.QLabel('Min')
-        min_input = QtGui.QDoubleSpinBox()
+        min_label = QtWidgets.QLabel('Min')
+        min_input = QtWidgets.QDoubleSpinBox()
         min_input.setValue(self.Bake.bakeMin)
         min_input.setSingleStep(0.001)
         min_input.setDecimals(3)
@@ -132,8 +132,8 @@ class BakeTool(MayaQWidgetDockableMixin, QtGui.QDialog):
 
         min_input.valueChanged.connect(updateMin)
 
-        max_label = QtGui.QLabel('Max')
-        max_input = QtGui.QDoubleSpinBox()
+        max_label = QtWidgets.QLabel('Max')
+        max_input = QtWidgets.QDoubleSpinBox()
         max_input.setValue(self.Bake.bakeMax)
         max_input.setSingleStep(0.001)
         max_input.setDecimals(3)
@@ -143,8 +143,8 @@ class BakeTool(MayaQWidgetDockableMixin, QtGui.QDialog):
 
         max_input.valueChanged.connect(updateMax)
 
-        offset_label = QtGui.QLabel('Offset')
-        offset_input = QtGui.QDoubleSpinBox()
+        offset_label = QtWidgets.QLabel('Offset')
+        offset_input = QtWidgets.QDoubleSpinBox()
         offset_input.setValue(self.Bake.bakeOffset)
         offset_input.setSingleStep(0.001)
         offset_input.setDecimals(3)
@@ -154,8 +154,8 @@ class BakeTool(MayaQWidgetDockableMixin, QtGui.QDialog):
 
         offset_input.valueChanged.connect(updateOffset)
 
-        scale_label = QtGui.QLabel('Scale')
-        scale_input = QtGui.QDoubleSpinBox()
+        scale_label = QtWidgets.QLabel('Scale')
+        scale_input = QtWidgets.QDoubleSpinBox()
         scale_input.setValue(self.Bake.bakeScale)
         scale_input.setSingleStep(0.001)
         scale_input.setDecimals(3)
@@ -177,20 +177,20 @@ class BakeTool(MayaQWidgetDockableMixin, QtGui.QDialog):
         self.inner_layout.addLayout(h_layout)
 
     def bakePoint(self):
-        h_layout = QtGui.QHBoxLayout()
+        h_layout = QtWidgets.QHBoxLayout()
 
         # Name Label
-        labelName = QtGui.QLabel('From')
+        labelName = QtWidgets.QLabel('From')
         h_layout.addWidget(labelName)
         # add spacer
-        spacer = QtGui.QSpacerItem(15, 10)
+        spacer = QtWidgets.QSpacerItem(15, 10)
         h_layout.addSpacerItem(spacer)
 
         # Bake Origin: Origin, Center, Pivot, Point (Create Locator with Label that represents point)
-        origin_radio_button = QtGui.QRadioButton('Origin')
-        center_radio_button = QtGui.QRadioButton('Center')
-        pivot_radio_button = QtGui.QRadioButton('Pivot')
-        given_radio_button = QtGui.QRadioButton('Given')
+        origin_radio_button = QtWidgets.QRadioButton('Origin')
+        center_radio_button = QtWidgets.QRadioButton('Center')
+        pivot_radio_button = QtWidgets.QRadioButton('Pivot')
+        given_radio_button = QtWidgets.QRadioButton('Given')
 
         pivot_radio_button.setChecked(True)
         self.Bake.StartAtPivot()
@@ -228,17 +228,17 @@ class BakeTool(MayaQWidgetDockableMixin, QtGui.QDialog):
         self.inner_layout.addLayout(h_layout)
 
     def bakeGiven(self):
-        h_layout = QtGui.QHBoxLayout()
+        h_layout = QtWidgets.QHBoxLayout()
 
         # Name Label
-        labelName = QtGui.QLabel('Given')
+        labelName = QtWidgets.QLabel('Given')
         h_layout.addWidget(labelName)
         # add spacer
-        spacer = QtGui.QSpacerItem(53, 10)
+        spacer = QtWidgets.QSpacerItem(53, 10)
         h_layout.addSpacerItem(spacer)
 
-        x_label = QtGui.QLabel('X')
-        x_input = QtGui.QLineEdit()
+        x_label = QtWidgets.QLabel('X')
+        x_input = QtWidgets.QLineEdit()
         x_input.setInputMask('0.000')
         x_input.setMaxLength(5)
         x_input.setText(str(self.Bake.clampPoint[0]))
@@ -248,8 +248,8 @@ class BakeTool(MayaQWidgetDockableMixin, QtGui.QDialog):
 
         x_input.textChanged.connect(updateX)
 
-        y_label = QtGui.QLabel('Y')
-        y_input = QtGui.QLineEdit()
+        y_label = QtWidgets.QLabel('Y')
+        y_input = QtWidgets.QLineEdit()
         y_input.setInputMask('0.000')
         y_input.setMaxLength(5)
         y_input.setText(str(self.Bake.clampPoint[1]))
@@ -259,8 +259,8 @@ class BakeTool(MayaQWidgetDockableMixin, QtGui.QDialog):
 
         y_input.textChanged.connect(updateY)
 
-        z_label = QtGui.QLabel('Z')
-        z_input = QtGui.QLineEdit()
+        z_label = QtWidgets.QLabel('Z')
+        z_input = QtWidgets.QLineEdit()
         z_input.setInputMask('0.000')
         z_input.setMaxLength(5)
         z_input.setText(str(self.Bake.clampPoint[2]))
@@ -280,17 +280,17 @@ class BakeTool(MayaQWidgetDockableMixin, QtGui.QDialog):
         self.inner_layout.addLayout(h_layout)
 
     def bakeDirection(self):
-        h_layout = QtGui.QHBoxLayout()
+        h_layout = QtWidgets.QHBoxLayout()
 
         # Name Label
-        labelName = QtGui.QLabel('Direction')
+        labelName = QtWidgets.QLabel('Direction')
         h_layout.addWidget(labelName)
         # add spacer
-        spacer = QtGui.QSpacerItem(35, 10)
+        spacer = QtWidgets.QSpacerItem(35, 10)
         h_layout.addSpacerItem(spacer)
 
-        x_label = QtGui.QLabel('X')
-        x_input = QtGui.QLineEdit()
+        x_label = QtWidgets.QLabel('X')
+        x_input = QtWidgets.QLineEdit()
         x_input.setInputMask('0.000')
         x_input.setMaxLength(5)
         x_input.setText(str(self.Bake.clampDir[0]))
@@ -300,8 +300,8 @@ class BakeTool(MayaQWidgetDockableMixin, QtGui.QDialog):
 
         x_input.textChanged.connect(updateX)
 
-        y_label = QtGui.QLabel('Y')
-        y_input = QtGui.QLineEdit()
+        y_label = QtWidgets.QLabel('Y')
+        y_input = QtWidgets.QLineEdit()
         y_input.setInputMask('0.000')
         y_input.setMaxLength(5)
         y_input.setText(str(self.Bake.clampDir[1]))
@@ -311,8 +311,8 @@ class BakeTool(MayaQWidgetDockableMixin, QtGui.QDialog):
 
         y_input.textChanged.connect(updateY)
 
-        z_label = QtGui.QLabel('Z')
-        z_input = QtGui.QLineEdit()
+        z_label = QtWidgets.QLabel('Z')
+        z_input = QtWidgets.QLineEdit()
         z_input.setInputMask('0.000')
         z_input.setMaxLength(5)
         z_input.setText(str(self.Bake.clampDir[2]))
@@ -332,20 +332,20 @@ class BakeTool(MayaQWidgetDockableMixin, QtGui.QDialog):
         self.inner_layout.addLayout(h_layout)
 
     def bakeClearChannels(self):
-        h_layout = QtGui.QHBoxLayout()
+        h_layout = QtWidgets.QHBoxLayout()
 
         # Name Label
-        labelName = QtGui.QLabel('Clear Channels')
+        labelName = QtWidgets.QLabel('Clear Channels')
         h_layout.addWidget(labelName)
         # add spacer
-        spacer = QtGui.QSpacerItem(15, 10)
+        spacer = QtWidgets.QSpacerItem(15, 10)
         h_layout.addSpacerItem(spacer)
 
         # Bake Channels: Green, Red, Blue, Alpha
-        green_checkbox = QtGui.QCheckBox('Green')
-        red_checkbox = QtGui.QCheckBox('Red')
-        blue_checkbox = QtGui.QCheckBox('Blue')
-        alpha_checkbox = QtGui.QCheckBox('Alpha')
+        green_checkbox = QtWidgets.QCheckBox('Green')
+        red_checkbox = QtWidgets.QCheckBox('Red')
+        blue_checkbox = QtWidgets.QCheckBox('Blue')
+        alpha_checkbox = QtWidgets.QCheckBox('Alpha')
 
         def updateG():
             self.Bake.cG = green_checkbox.isChecked()
@@ -380,20 +380,20 @@ class BakeTool(MayaQWidgetDockableMixin, QtGui.QDialog):
         self.inner_layout.addLayout(h_layout)
 
     def bakeColorChannels(self):
-        h_layout = QtGui.QHBoxLayout()
+        h_layout = QtWidgets.QHBoxLayout()
 
         # Name Label
-        labelName = QtGui.QLabel('Paint Channels')
+        labelName = QtWidgets.QLabel('Paint Channels')
         h_layout.addWidget(labelName)
         # add spacer
-        spacer = QtGui.QSpacerItem(15, 10)
+        spacer = QtWidgets.QSpacerItem(15, 10)
         h_layout.addSpacerItem(spacer)
 
         # Bake Channels: Green, Red, Blue, Alpha
-        green_checkbox = QtGui.QCheckBox('Green')
-        red_checkbox = QtGui.QCheckBox('Red')
-        blue_checkbox = QtGui.QCheckBox('Blue')
-        alpha_checkbox = QtGui.QCheckBox('Alpha')
+        green_checkbox = QtWidgets.QCheckBox('Green')
+        red_checkbox = QtWidgets.QCheckBox('Red')
+        blue_checkbox = QtWidgets.QCheckBox('Blue')
+        alpha_checkbox = QtWidgets.QCheckBox('Alpha')
 
         def updateG():
             self.Bake.rG = green_checkbox.isChecked()
@@ -427,16 +427,16 @@ class BakeTool(MayaQWidgetDockableMixin, QtGui.QDialog):
         self.inner_layout.addLayout(h_layout)
 
     def bakeClamp(self):
-        h_layout = QtGui.QHBoxLayout()
+        h_layout = QtWidgets.QHBoxLayout()
 
         # Name Label
-        labelName = QtGui.QLabel('Clamp')
+        labelName = QtWidgets.QLabel('Clamp')
         h_layout.addWidget(labelName)
         # add spacer
-        spacer = QtGui.QSpacerItem(60, 10)
+        spacer = QtWidgets.QSpacerItem(60, 10)
         h_layout.addSpacerItem(spacer)
 
-        clamp_checkbox = QtGui.QCheckBox('Mirror')
+        clamp_checkbox = QtWidgets.QCheckBox('Mirror')
         h_layout.addWidget(clamp_checkbox)
 
         def updateMirror():
@@ -444,26 +444,26 @@ class BakeTool(MayaQWidgetDockableMixin, QtGui.QDialog):
 
         clamp_checkbox.stateChanged.connect(updateMirror)
 
-        spacer = QtGui.QSpacerItem(21, 10)
+        spacer = QtWidgets.QSpacerItem(21, 10)
         h_layout.addSpacerItem(spacer)
 
         # Name Label
-        labelName = QtGui.QLabel('Easing')
+        labelName = QtWidgets.QLabel('Easing')
         h_layout.addWidget(labelName)
         # add spacer
-        spacer = QtGui.QSpacerItem(15, 10)
+        spacer = QtWidgets.QSpacerItem(15, 10)
         h_layout.addSpacerItem(spacer)
 
-        self.bake_clamp_easing_combobox = QtGui.QComboBox()
+        self.bake_clamp_easing_combobox = QtWidgets.QComboBox()
         self.bake_clamp_easing_combobox.addItems(Easing.EasingList())
         h_layout.addWidget(self.bake_clamp_easing_combobox)
         self.inner_layout.addLayout(h_layout)
 
     def bakeSolidButtons(self):
-        h_layout = QtGui.QHBoxLayout()
-        black_button = QtGui.QPushButton('BAKE SELECTED BLACK')
+        h_layout = QtWidgets.QHBoxLayout()
+        black_button = QtWidgets.QPushButton('BAKE SELECTED BLACK')
         h_layout.addWidget(black_button)
-        white_button = QtGui.QPushButton('BAKE SELECTED WHITE')
+        white_button = QtWidgets.QPushButton('BAKE SELECTED WHITE')
         h_layout.addWidget(white_button)
         self.inner_layout.addLayout(h_layout)
 
@@ -471,8 +471,8 @@ class BakeTool(MayaQWidgetDockableMixin, QtGui.QDialog):
         white_button.clicked.connect(self.Bake.bakeWhite)
 
     def bakeButton(self):
-        h_layout = QtGui.QHBoxLayout()
-        bake_button = QtGui.QPushButton('BAKE SELECTED MESH')
+        h_layout = QtWidgets.QHBoxLayout()
+        bake_button = QtWidgets.QPushButton('BAKE SELECTED MESH')
         h_layout.addWidget(bake_button)
         self.inner_layout.addLayout(h_layout)
 
@@ -498,6 +498,6 @@ class BakeTool(MayaQWidgetDockableMixin, QtGui.QDialog):
         bake_button.clicked.connect(bake)
 
     def progressBar(self):
-        progress_bar = QtGui.QProgressBar()
+        progress_bar = QtWidgets.QProgressBar()
         self.inner_layout.addWidget(progress_bar)
         self.Bake.progressBar = progress_bar
