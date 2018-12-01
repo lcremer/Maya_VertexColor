@@ -1,22 +1,41 @@
-from PySide2 import QtGui, QtCore, QtWidgets
-from maya.app.general.mayaMixin import MayaQDockWidget
 from maya.app.general.mayaMixin import MayaQWidgetDockableMixin
+from maya import OpenMayaUI as omui
+from PySide2 import QtGui, QtCore, QtWidgets
+
 from Maya_VertexColor.Gradient import Bake
-from Maya_UtilLib.UI import getMayaWindow
 from Maya_UtilLib import Easing
 import pymel.core as pc
 
+gradientMixinWindow = None
 
 def Open(*args):
-    BakeTool()
+    GradientDockableWidgetUI()
 
+def GradientDockableWidgetUI(restore=False):
+    global gradientMixinWindow
 
-class BakeTool(MayaQWidgetDockableMixin, QtWidgets.QDialog):
+    restoredControl = None
+    if restore == True:
+        restoredControl = omui.MQtUtil.getCurrentParent()
+
+    if gradientMixinWindow is None:
+        gradientMixinWindow = BakeTool()
+        gradientMixinWindow.setObjectName('autoRigMixinWindow')
+
+    if restore == True:
+        mixinPtr = omui.MQtUtil.findControl(gradientMixinWindow.objectName())
+        omui.MQtUtil.addWidgetToMayaLayout(long(mixinPtr), long(restoredControl))
+    else:
+        gradientMixinWindow.show(dockable=True, height=600, width=480, uiScript='GradientDockableWidgetUI(restore=True)')
+
+    return gradientMixinWindow
+
+class BakeTool(MayaQWidgetDockableMixin, QtWidgets.QWidget):
     toolName = 'vertexColorWidget'
     """
     VertexColor UI Class
     """
-    def __init__(self, parent=None, *args):
+    def __init__(self, parent=None):
         # creating main Bake object
         self.Bake = Bake.Bake()
         self.selected = []
@@ -26,17 +45,16 @@ class BakeTool(MayaQWidgetDockableMixin, QtWidgets.QDialog):
         self.Easing = Easing.Linear
         self.ClampEasing = Easing.Linear
 
-        self.delete_instance()
+        # self.delete_instance()
 
-        super(self.__class__, self).__init__(parent=parent)
-        self.mayaMainWindow = getMayaWindow()
+        super(BakeTool, self).__init__(parent=parent)
         self.setObjectName(self.__class__.toolName)
 
         self.setWindowFlags(QtCore.Qt.Window)
         self.setWindowTitle('VertexColor Bake')
-        self.setMinimumWidth(375)
-        self.setMaximumWidth(375)
-        self.setMaximumHeight(300)
+        self.setMinimumWidth(500)
+        # self.setMaximumWidth(375)
+        # self.setMaximumHeight(300)
 
         # main vertical layout
         self.main_layout = QtWidgets.QVBoxLayout()
@@ -72,23 +90,23 @@ class BakeTool(MayaQWidgetDockableMixin, QtWidgets.QDialog):
         self.setLayout(self.main_layout)
         self.show(dockable=True)
 
-    def delete_instance(self):
-        mayaMainWindow = getMayaWindow()
-
-        # Go through main window's children to find any previous instances
-        for obj in mayaMainWindow.children():
-            if type(obj) == MayaQDockWidget:
-                # if obj.widget().__class__ == self.__class__:
-                #  Alternatively we can check with this, but it will fail if we re-evaluate the class
-                if obj.widget().objectName() == self.__class__.toolName:  # Compare object names
-                    # If they share the same name then remove it
-                    print 'Deleting instance {0}'.format(obj)
-                    # This will remove from right-click menu, but won't actually delete it!
-                    # ( still under mainWindow.children() )
-                    mayaMainWindow.removeDockWidget(obj)
-                    # Delete it for good
-                    obj.setParent(None)
-                    obj.deleteLater()
+    # def delete_instance(self):
+    #     mayaMainWindow = getMayaWindow()
+    #
+    #     # Go through main window's children to find any previous instances
+    #     for obj in mayaMainWindow.children():
+    #         if type(obj) == MayaQDockWidget:
+    #             # if obj.widget().__class__ == self.__class__:
+    #             #  Alternatively we can check with this, but it will fail if we re-evaluate the class
+    #             if obj.widget().objectName() == self.__class__.toolName:  # Compare object names
+    #                 # If they share the same name then remove it
+    #                 print 'Deleting instance {0}'.format(obj)
+    #                 # This will remove from right-click menu, but won't actually delete it!
+    #                 # ( still under mainWindow.children() )
+    #                 mayaMainWindow.removeDockWidget(obj)
+    #                 # Delete it for good
+    #                 obj.setParent(None)
+    #                 obj.deleteLater()
 
     def bakeType(self):
         h_layout = QtWidgets.QHBoxLayout()
