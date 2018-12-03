@@ -1,7 +1,18 @@
-from PySide2 import QtGui, QtCore
-from pymel.core import *
-import Maya_UtilLib as Utils
-import math
+import copy
+from BakeUtils import *
+
+
+def get_selection(bake):
+    # type: (Bake) -> None
+    sel = pmc.ls(sl=True)
+    meshes = pmc.listTransforms(type="mesh")
+    selected_meshes = [x for x in sel if x in meshes]
+
+    if len(selected_meshes) > 0:
+        bake.objects = selected_meshes
+    else:
+        pmc.PopupError("Nothing selected to bake vertex colors onto")
+
 
 # TODO:
 # Affect only selected verts
@@ -10,138 +21,170 @@ import math
 class Bake:
     def __init__(self,
                  objects=None,
-                 fromOrigin=False,
-                 fromCenter=False,
-                 fromPivot=False,
-                 fromPoint=True,
-                 clampPoint=(0, 0, 0),
-                 clampDir=(0, 1, 0),
-                 clampDecay=True,
-                 clampSmooth=True,
+                 from_origin=False,
+                 from_center=False,
+                 from_pivot=False,
+                 from_point=True,
+                 clamp_point=(0, 0, 0),
+                 clamp_dir=(0, 1, 0),
+                 clamp_decay=True,
+                 clamp_smooth=True,
                  mirror=False,
                  easing=None,
-                 replaceGreen=False,
-                 replaceRed=False,
-                 replaceBlue=False,
-                 replaceAlpha=False,
-                 clearGreen=False,
-                 clearRed=False,
-                 clearBlue=False,
-                 clearAlpha=False,
-                 bakeMin=0.0,
-                 bakeMax=1.0,
-                 bakeOffset=0.0,
-                 bakeScale=1.0):
+                 replace_green=False,
+                 replace_red=False,
+                 replace_blue=False,
+                 replace_alpha=False,
+                 clear_green=False,
+                 clear_red=False,
+                 clear_blue=False,
+                 clear_alpha=False,
+                 bake_min=0.0,
+                 bake_max=1.0,
+                 bake_offset=0.0,
+                 bake_scale=1.0):
 
-        self.objects = objects
-        self.fromOrigin = fromOrigin
-        self.fromCenter = fromCenter
-        self.fromPivot = fromPivot
-        self.fromPoint = fromPoint
-        self.clampPoint = dt.Point(clampPoint[0], clampPoint[1], clampPoint[2])
-        self.clampDir = dt.Vector(clampDir[0], clampDir[1], clampDir[2])
-        self.clampDecay = clampDecay
-        self.clampSmooth = clampSmooth
-        self.mirror = mirror
+        self.objects = list()
+        """@:type : list"""
 
-        self.easing = easing
-        if self.easing is None:
-            self.easing = Utils.Easing.Linear
+        self.oldObjects = list()
+        """@:type : list"""
 
-        # Replace Color Channels
-        self.rG = replaceGreen
-        self.rR = replaceRed
-        self.rB = replaceBlue
-        self.rA = replaceAlpha
+        if objects is not None and len(objects) > 0:
+            self.objects = objects
 
-        # Clear|Zero Out Color Channels
-        self.cG = clearGreen
-        self.cR = clearRed
-        self.cB = clearBlue
-        self.cA = clearAlpha
+        self.bake_data = BakeData(from_origin,
+                                  from_center,
+                                  from_pivot,
+                                  from_point,
+                                  clamp_point,
+                                  clamp_dir,
+                                  clamp_decay,
+                                  clamp_smooth,
+                                  mirror,
+                                  easing,
+                                  None,
+                                  replace_green,
+                                  replace_red,
+                                  replace_blue,
+                                  replace_alpha,
+                                  clear_green,
+                                  clear_red,
+                                  clear_blue,
+                                  clear_alpha,
+                                  bake_min,
+                                  bake_max,
+                                  bake_offset,
+                                  bake_scale)
 
-        self.bakeMin = bakeMin
-        self.bakeMax = bakeMax
-        self.bakeOffset = bakeOffset
-        self.bakeScale = bakeScale
+        # self.fromOrigin = from_origin
+        # self.fromCenter = from_center
+        # self.fromPivot = from_pivot
+        # self.fromPoint = from_point
+        # self.clampPoint = dt.Point(clamp_point[0], clamp_point[1], clamp_point[2])
+        # self.clampDir = dt.Vector(clamp_dir[0], clamp_dir[1], clamp_dir[2])
+        # self.clampDecay = clamp_decay
+        # self.clampSmooth = clamp_smooth
+        # self.mirror = mirror
+        #
+        # self.easing = easing
+        # if self.easing is None:
+        #     self.easing = Utils.Easing.Linear
+        #
+        # # Replace Color Channels
+        # self.rG = replace_green
+        # self.rR = replace_red
+        # self.rB = replace_blue
+        # self.rA = replace_alpha
+        #
+        # # Clear|Zero Out Color Channels
+        # self.cG = clear_green
+        # self.cR = clear_red
+        # self.cB = clear_blue
+        # self.cA = clear_alpha
+        #
+        # self.bakeMin = bake_min
+        # self.bakeMax = bake_max
+        # self.bakeOffset = bake_offset
+        # self.bakeScale = bake_scale
 
         self.progressMax = 0
         self.progressCurrent = 0
         self.progressBar = None
 
-    def SetStart(self,
-                 fromPoint=False,
-                 point=dt.Point(0, 0, 0),
-                 fromOrigin=False,
-                 fromCenter=False,
-                 fromPivot=False):
+    def set_start(self,
+                  from_point=False,
+                  point=dt.Point(0, 0, 0),
+                  from_origin=False,
+                  from_center=False,
+                  from_pivot=False):
 
-        if fromPoint:
-            self.clampPoint = point
-            self.fromPoint = True
-            self.fromOrigin = False
-            self.fromCenter = False
-            self.fromPivot = False
+        if from_point:
+            self.bake_data.clampPoint = point
+            self.bake_data.fromPoint = True
+            self.bake_data.fromOrigin = False
+            self.bake_data.fromCenter = False
+            self.bake_data.fromPivot = False
 
-        if fromOrigin:
-            self.fromPoint = False
-            self.fromOrigin = True
-            self.fromCenter = False
-            self.fromPivot = False
+        if from_origin:
+            self.bake_data.fromPoint = False
+            self.bake_data.fromOrigin = True
+            self.bake_data.fromCenter = False
+            self.bake_data.fromPivot = False
 
-        if fromCenter:
-            self.fromPoint = False
-            self.fromOrigin = False
-            self.fromCenter = True
-            self.fromPivot = False
+        if from_center:
+            self.bake_data.fromPoint = False
+            self.bake_data.fromOrigin = False
+            self.bake_data.fromCenter = True
+            self.bake_data.fromPivot = False
 
-        if fromPivot:
-            self.fromPoint = False
-            self.fromOrigin = False
-            self.fromCenter = False
-            self.fromPivot = True
+        if from_pivot:
+            self.bake_data.fromPoint = False
+            self.bake_data.fromOrigin = False
+            self.bake_data.fromCenter = False
+            self.bake_data.fromPivot = True
 
     # Point Helper Methods
-    def StartAtPoint(self, point):
-        self.clampPoint = dt.Point(point[0], point[1], point[2])
-        self.SetStart(fromPoint=True)
+    def start_at_point(self, point):
+        self.bake_data.clampPoint = dt.Point(point[0], point[1], point[2])
+        self.set_start(from_point=True)
 
-    def StartAtOrigin(self):
-        self.SetStart(fromOrigin=True)
+    def start_at_origin(self):
+        self.set_start(from_origin=True)
 
-    def StartAtCenter(self):
-        self.SetStart(fromCenter=True)
+    def start_at_center(self):
+        self.set_start(from_center=True)
 
-    def StartAtPivot(self):
-        self.SetStart(fromPivot=True)
+    def start_at_pivot(self):
+        self.set_start(from_pivot=True)
 
-    def SetClampDir(self, value=dt.Vector(0, 1, 0)):
-        self.clampDir = value
+    def set_clamp_dir(self, value=dt.Vector(0, 1, 0)):
+        self.bake_data.clampDir = value
 
-    def SetClampDecay(self, value=True):
-        self.clampDecay = value
+    def set_clamp_decay(self, value=True):
+        self.bake_data.clampDecay = value
 
-    def SetClampSmooth(self, value=True):
-        self.clampSmooth = value
+    def set_clamp_smooth(self, value=True):
+        self.bake_data.clampSmooth = value
 
-    def SetMirror(self, value=True):
-        self.mirror = value
+    def set_mirror(self, value=True):
+        self.bake_data.mirror = value
 
-    def GetPoint(self):
-        return self.clampPoint
+    def get_point(self):
+        return self.bake_data.clampPoint
 
-    def GetVector(self):
-        return self.clampDir
+    def get_vector(self):
+        return self.bake_data.clampDir
 
-    def GetMirror(self):
-        return self.mirror
+    def get_mirror(self):
+        return self.bake_data.mirror
 
     # Progress
-    def ResetProgressBar(self):
+    def reset_progress_bar(self):
         if self.progressBar is not None:
             self.progressBar.reset()
 
-    def SetProgressMax(self):
+    def set_progress_max(self):
         self.progressCurrent = 0
         self.progressMax = 0
         print('object Length:', len(self.objects))
@@ -153,281 +196,140 @@ class Bake:
             self.progressBar.setRange(0, self.progressMax)
             self.progressBar.setValue(0)
 
-    def TickProgressBar(self):
+    def tick_progress_bar(self):
         self.progressCurrent += 1
         if self.progressBar is not None:
             self.progressBar.setValue(self.progressCurrent)
 
     # Bake Helpers
-    def CreateColorSet(self):
-        try:
-            polyColorSet(delete=True, colorSet='bakeColor')
-        except:
-            pass
-        polyColorSet(create=True, colorSet='bakeColor')
-        polyColorPerVertex(rel=True, cdo=True)
+    # def create_color_set(self):
+    #     try:
+    #         pmc.polyColorSet(delete=True, colorSet='bakeColor')
+    #     except:
+    #         pass
+    #         pmc.polyColorSet(create=True, colorSet='bakeColor')
+    #         pmc.polyColorPerVertex(rel=True, cdo=True)
+    #
+    # def set_color_set(self):
+    #     pmc.polyColorSet(currentColorSet=True, colorSet='bakeColor')
 
-    def SetColorSet(self):
-        polyColorSet(currentColorSet=True, colorSet='bakeColor')
+    # def paint_colors(self, vertex, value):
+    #
+    #     if value > self.bake_data.bakeMax:
+    #         value = self.bake_data.bakeMax
+    #     if value < self.bake_data.bakeMin:
+    #         value = self.bake_data.bakeMin
+    #     value += self.bake_data.bakeOffset
+    #     value *= self.bake_data.bakeScale
+    #
+    #     v_color = vertex.getColor()
+    #     """@type : dt.Color"""
+    #
+    #     # zero out existing value
+    #     if self.bake_data.cG:
+    #         v_color.g = 0
+    #     if self.bake_data.cR:
+    #         v_color.r = 0
+    #     if self.bake_data.cB:
+    #         v_color.b = 0
+    #     if self.bake_data.cA:
+    #         v_color.a = 0
+    #
+    #     # replace existing with new value
+    #     if self.bake_data.rG:
+    #         v_color.g = value
+    #     if self.bake_data.rR:
+    #         v_color.r = value
+    #     if self.bake_data.rB:
+    #         v_color.b = value
+    #     if self.bake_data.rA:
+    #         v_color.a = value
+    #
+    #     vertex.setColor(v_color)
 
-    def PaintColors(self, vertex, value):
-
-        if value > self.bakeMax:
-            value = self.bakeMax
-        if value < self.bakeMin:
-            value = self.bakeMin
-        value += self.bakeOffset
-        value *= self.bakeScale
-
-        vColor = vertex.getColor()
-        """@type : dt.Color"""
-
-        # zero out existing value
-        if self.cG:
-            vColor.g = 0
-        if self.cR:
-            vColor.r = 0
-        if self.cB:
-            vColor.b = 0
-        if self.cA:
-            vColor.a = 0
-
-        # replace existing with new value
-        if self.rG:
-            vColor.g = value
-        if self.rR:
-            vColor.r = value
-        if self.rB:
-            vColor.b = value
-        if self.rA:
-            vColor.a = value
-
-        vertex.setColor(vColor)
-
-    def FindPoint(self, obj):
-        if self.fromOrigin:
-            return dt.Point(0.0,0.0,0.0)
-
-        if self.fromPivot:
-            p = obj.getRotatePivot(space='world')
-            return dt.Point(p[0],p[1],p[2])
-
-        if self.fromCenter:
-            bounds = obj.getBoundingBox(space='world')
-            """@type: dt.BoundingBox"""
-            c = bounds.center()
-            return dt.Point(c[0],c[1],c[2])
-
-        if self.fromPoint:
-            return self.clampPoint
-
-        return dt.Point(0.0,0.0,0.0)
+    # def find_point(self, obj):
+    #     if self.bake_data.fromOrigin:
+    #         return dt.Point(0.0, 0.0, 0.0)
+    #
+    #     if self.bake_data.fromPivot:
+    #         p = obj.getRotatePivot(space='world')
+    #         return dt.Point(p[0], p[1], p[2])
+    #
+    #     if self.bake_data.fromCenter:
+    #         bounds = obj.getBoundingBox(space='world')
+    #         """@type: dt.BoundingBox"""
+    #         c = bounds.center()
+    #         return dt.Point(c[0], c[1], c[2])
+    #
+    #     if self.bake_data.fromPoint:
+    #         return self.bake_data.clampPoint
+    #
+    #     return dt.Point(0.0, 0.0, 0.0)
 
     # Bake Methods
-    def bakeBlack(self):
-        if self.objects == "" or self.objects is None:
-            self.objects = ls(selection=True)
-        self.SetProgressMax()
+    def bake_black(self):
+        v_color = dt.Color()
+        v_color.r = 0
+        v_color.g = 0
+        v_color.b = 0
+        v_color.a = 1
+        get_selection(self)
+        self.set_progress_max()
         for obj in self.objects:
-            for i in range(len(obj.vtx)):
-                self.TickProgressBar()
+            bake_solid(obj, v_color, self.tick_progress_bar)
+        self.reset_progress_bar()
 
-                vColor = obj.vtx[i].getColor()
-                """@type : dt.Color"""
-
-                vColor.g = 0
-                vColor.r = 0
-                vColor.b = 0
-                vColor.a = 1
-
-                obj.vtx[i].setColor(vColor)
-            self.CreateColorSet(obj)
-        self.ResetProgressBar()
-
-    def bakeWhite(self):
-        if self.objects == "" or self.objects is None:
-            self.objects = ls(selection=True)
-        self.SetProgressMax()
+    def bake_white(self):
+        v_color = dt.Color()
+        v_color.r = 1
+        v_color.g = 1
+        v_color.b = 1
+        v_color.a = 1
+        get_selection(self)
+        self.set_progress_max()
         for obj in self.objects:
-            for i in range(len(obj.vtx)):
-                self.TickProgressBar()
+            bake_solid(obj, v_color, self.tick_progress_bar)
+        self.reset_progress_bar()
 
-                vColor = obj.vtx[i].getColor()
-                """@type : dt.Color"""
-
-                vColor.g = 1
-                vColor.r = 1
-                vColor.b = 1
-                vColor.a = 1
-
-                obj.vtx[i].setColor(vColor)
-            self.CreateColorSet(obj)
-        self.TickProgressBar()
-
-    def RadialBounds(self,
-                     easing=Utils.Easing.Linear,
-                     clampEasing=Utils.Easing.Linear,
-                     debugLocators=False,
-                     inner=True):
-        if self.objects == "" or self.objects is None:
-            self.objects = ls(selection=True)
-
-        self.CreateColorSet()
-        self.SetProgressMax()
+    def radial_bounds(self,
+                      easing=Utils.Easing.Linear,
+                      clamp_easing=Utils.Easing.Linear,
+                      debug_locators=False,
+                      inner=True):
+        self.bake_data.easing = easing
+        self.bake_data.clam_easing = clamp_easing
+        get_selection(self)
+        self.set_progress_max()
         for obj in self.objects:
-            points = obj.getPoints(space='world')
-            point = self.FindPoint(obj)
-            bounds = obj.getBoundingBox(space='world')
-            """@type: dt.BoundingBox"""
+            bake_radial_bounds(self.bake_data, obj, self.tick_progress_bar, debug_locators, inner)
+        self.reset_progress_bar()
 
-            for i in range(len(obj.vtx)):
-                self.TickProgressBar()
-                vertexDir = points[i] - point
-                """@type: dt.Vector"""
-
-                angle = self.clampDir.angle(vertexDir)
-
-                if angle < math.pi / 2.0:
-                    angleRatio = 1.0 - (angle / (math.pi / 2.0))
-                else:
-                    angleRatio = angle / math.pi
-
-                # check clamp against point and vector plane
-                if not self.mirror and angle > math.pi / 2.0:
-                    value = 0
-                else:
-                    intersectPoint = Utils.VMath.ProjectPointOntoScaledSphere(bounds, points[i], inner)
-                    if debugLocators:
-                        spaceLocator(name='intersection', p=intersectPoint)
-                        select(clear=True)
-
-                    value = (vertexDir.length() / (intersectPoint - point).length())
-
-                    if self.clampDecay:
-                        value = (value + angleRatio) / 2.0
-
-                value = easing(value)
-
-                if self.clampSmooth:
-                    value *= clampEasing(angleRatio)
-
-                vertex = obj.vtx[i]
-                self.PaintColors(vertex, value)
-        self.ResetProgressBar()
-        self.SetColorSet()
-
-    def SphericalBounds(self,
-                        easing=Utils.Easing.Linear,
-                        clampEasing=Utils.Easing.Linear,
-                        debugLocators=False,
-                        inner=False):
-        if self.objects == "" or self.objects is None:
-            self.objects = ls(selection=True)
-
-        self.CreateColorSet()
-        self.SetProgressMax()
+    def spherical_bounds(self,
+                         easing=Utils.Easing.Linear,
+                         clamp_easing=Utils.Easing.Linear,
+                         debug_locators=False,
+                         inner=False):
+        self.bake_data.easing = easing
+        self.bake_data.clam_easing = clamp_easing
+        get_selection(self)
+        self.set_progress_max()
         for obj in self.objects:
-            points = obj.getPoints(space='world')
-            point = self.FindPoint(obj)
-            bounds = obj.getBoundingBox(space='world')
-            """@type: dt.BoundingBox"""
+            bake_spherical_bounds(self.bake_data, obj, self.tick_progress_bar, debug_locators, inner)
+        self.reset_progress_bar()
 
-            for i in range(len(obj.vtx)):
-                self.TickProgressBar()
-                vertexDir = points[i] - point
-                """@type: dt.Vector"""
-
-                angle = self.clampDir.angle(vertexDir)
-
-                if angle < math.pi / 2.0:
-                    angleRatio = 1.0 - (angle / (math.pi / 2.0))
-                else:
-                    angleRatio = angle / math.pi
-
-                # check clamp against point and vector plane
-                if not self.mirror and angle > math.pi / 2.0:
-                    value = 0.0
-                else:
-                    intersectPoint = Utils.VMath.ProjectPointOntoSphere(bounds, points[i], inner)
-                    if debugLocators:
-                        spaceLocator(name='intersection', p=intersectPoint)
-                        select(clear=True)
-
-                    value = (vertexDir.length() / (intersectPoint - point).length())
-
-                    if self.clampDecay:
-                        value = (value + angleRatio) / 2.0
-
-                value = easing(value)
-
-                if self.clampSmooth:
-                    value *= clampEasing(angleRatio)
-
-                vertex = obj.vtx[i]
-                self.PaintColors(vertex, value)
-            self.CreateColorSet(obj)
-        self.ResetProgressBar()
-        self.SetColorSet()
-
-    def BoxBounds(self,
-                  easing=Utils.Easing.Linear,
-                  clampEasing=Utils.Easing.Linear,
-                  debugLocators=False):
-        if self.objects == "" or self.objects is None:
-            self.objects = ls(selection=True)
-
-        self.CreateColorSet()
-        self.SetProgressMax()
+    def box_bounds(self,
+                   easing=Utils.Easing.Linear,
+                   clamp_easing=Utils.Easing.Linear,
+                   debug_locators=False):
+        self.bake_data.easing = easing
+        self.bake_data.clam_easing = clamp_easing
+        get_selection(self)
+        self.set_progress_max()
         for obj in self.objects:
-            points = obj.getPoints(space='world')
-            point = self.FindPoint(obj)
-            bounds = obj.getBoundingBox(space='world')
-            """@type: dt.BoundingBox"""
+            bake_box_bounds(self.bake_data, obj, self.tick_progress_bar, debug_locators)
+        self.reset_progress_bar()
 
-            doubleLength = (bounds.width() + bounds.height() + bounds.depth()) / 3.0 * 3.0
-
-            for i in range(len(obj.vtx)):
-                self.TickProgressBar()
-                vertexDir = points[i] - point
-                """@type: dt.Vector"""
-
-                angle = self.clampDir.angle(vertexDir)
-
-                if angle < math.pi / 2.0:
-                    angleRatio = 1.0 - (angle / (math.pi / 2.0))
-                else:
-                    angleRatio = angle / math.pi
-
-                # check clamp against point and vector plane
-                if not self.mirror and angle > math.pi / 2.0:
-                    value = 0.0
-                else:
-                    rayPoint = (vertexDir.normal() * doubleLength) + point
-                    rayDirection = point - rayPoint
-                    intersectPoint = Utils.VMath.BoundingBoxIntersection(bounds, rayPoint, rayDirection)
-
-                    if debugLocators:
-                        spaceLocator(p=rayPoint)
-                        spaceLocator(name='intersection', p=intersectPoint)
-                        select(clear=True)
-
-                    value = (vertexDir.length() / (intersectPoint - point).length())
-
-                    if self.clampDecay:
-                        value = (value + angleRatio) / 2.0
-
-                value = easing(value)
-
-                if self.clampSmooth:
-                    value *= clampEasing(angleRatio)
-
-                vertex = obj.vtx[i]
-                self.PaintColors(vertex, value)
-            self.CreateColorSet(obj)
-        self.ResetProgressBar()
-        self.SetColorSet()
-
-    def Branching(self, easing=None):
+    def branching(self, easing=None):
         # TODO:
         # Voxelize
         # Get branch ends
@@ -436,5 +338,5 @@ class Bake:
         # Smooth verts not weights
         pass
 
-    def Surface(self, easing=None):
+    def surface(self, easing=None):
         pass

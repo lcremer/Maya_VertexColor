@@ -6,7 +6,7 @@ from functools import partial
 
 def MenuItem():
     pm.menuItem(parent='CustomTools', subMenu=True, tearOff=True, label='Misc')
-    pm.menuItem(label='Vertex Color', command=partial(Gradient.UI.Open))
+    pm.menuItem(label='Vertex Color', command=partial(Gradient.UI.open))
 
 
 def AddMenuItem():

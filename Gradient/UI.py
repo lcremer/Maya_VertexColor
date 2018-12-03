@@ -8,33 +8,39 @@ import pymel.core as pc
 
 gradientMixinWindow = None
 
-def Open(*args):
-    GradientDockableWidgetUI()
 
-def GradientDockableWidgetUI(restore=False):
+def open(*args):
+    gradient_dockable_widget_ui()
+
+
+def gradient_dockable_widget_ui(restore=False):
+    # type: (bool) -> BakeTool
     global gradientMixinWindow
 
-    restoredControl = None
-    if restore == True:
-        restoredControl = omui.MQtUtil.getCurrentParent()
+    restored_control = None
+    if restore:
+        restored_control = omui.MQtUtil.getCurrentParent()
 
     if gradientMixinWindow is None:
         gradientMixinWindow = BakeTool()
         gradientMixinWindow.setObjectName('autoRigMixinWindow')
 
-    if restore == True:
-        mixinPtr = omui.MQtUtil.findControl(gradientMixinWindow.objectName())
-        omui.MQtUtil.addWidgetToMayaLayout(long(mixinPtr), long(restoredControl))
+    if restore:
+        mixin_ptr = omui.MQtUtil.findControl(gradientMixinWindow.objectName())
+        omui.MQtUtil.addWidgetToMayaLayout(long(mixin_ptr), long(restored_control))
     else:
-        gradientMixinWindow.show(dockable=True, height=600, width=480, uiScript='GradientDockableWidgetUI(restore=True)')
+        gradientMixinWindow.show(dockable=True, height=600, width=480,
+                                 uiScript='GradientDockableWidgetUI(restore=True)')
 
     return gradientMixinWindow
+
 
 class BakeTool(MayaQWidgetDockableMixin, QtWidgets.QWidget):
     toolName = 'vertexColorWidget'
     """
     VertexColor UI Class
     """
+
     def __init__(self, parent=None):
         # creating main Bake object
         self.Bake = Bake.Bake()
@@ -72,7 +78,7 @@ class BakeTool(MayaQWidgetDockableMixin, QtWidgets.QWidget):
         self.bake_easing_combobox = None
         self.bake_clamp_easing_combobox = None
 
-        self.bakeType()
+        self.bake_type()
         self.bakeValues()
         self.bakePoint()
         self.bakeGiven()
@@ -108,7 +114,7 @@ class BakeTool(MayaQWidgetDockableMixin, QtWidgets.QWidget):
     #                 obj.setParent(None)
     #                 obj.deleteLater()
 
-    def bakeType(self):
+    def bake_type(self):
         h_layout = QtWidgets.QHBoxLayout()
 
         # Name Label
@@ -119,7 +125,9 @@ class BakeTool(MayaQWidgetDockableMixin, QtWidgets.QWidget):
         h_layout.addSpacerItem(spacer)
 
         self.bake_type_combobox = QtWidgets.QComboBox()
-        self.bake_type_combobox.addItems(['Radial In Bounds', 'Radial Out Bounds', 'Spherical In Bounds', 'Spherical Out Bounds', 'Box Bounds', 'Branching (Coming Soon)'])
+        self.bake_type_combobox.addItems(
+            ['Radial In Bounds', 'Radial Out Bounds', 'Spherical In Bounds', 'Spherical Out Bounds', 'Box Bounds',
+             'Branching (Coming Soon)'])
 
         h_layout.addWidget(self.bake_type_combobox)
 
@@ -141,45 +149,45 @@ class BakeTool(MayaQWidgetDockableMixin, QtWidgets.QWidget):
 
         min_label = QtWidgets.QLabel('Min')
         min_input = QtWidgets.QDoubleSpinBox()
-        min_input.setValue(self.Bake.bakeMin)
+        min_input.setValue(self.Bake.bake_data.bakeMin)
         min_input.setSingleStep(0.001)
         min_input.setDecimals(3)
 
         def updateMin():
-            self.Bake.bakeMin = float(min_input.text())
+            self.Bake.bake_data.bakeMin = float(min_input.text())
 
         min_input.valueChanged.connect(updateMin)
 
         max_label = QtWidgets.QLabel('Max')
         max_input = QtWidgets.QDoubleSpinBox()
-        max_input.setValue(self.Bake.bakeMax)
+        max_input.setValue(self.Bake.bake_data.bakeMax)
         max_input.setSingleStep(0.001)
         max_input.setDecimals(3)
 
         def updateMax():
-            self.Bake.bakeMax = float(max_input.text())
+            self.Bake.bake_data.bakeMax = float(max_input.text())
 
         max_input.valueChanged.connect(updateMax)
 
         offset_label = QtWidgets.QLabel('Offset')
         offset_input = QtWidgets.QDoubleSpinBox()
-        offset_input.setValue(self.Bake.bakeOffset)
+        offset_input.setValue(self.Bake.bake_data.bakeOffset)
         offset_input.setSingleStep(0.001)
         offset_input.setDecimals(3)
 
         def updateOffset():
-            self.Bake.bakeOffset = float(offset_input.text())
+            self.Bake.bake_data.bakeOffset = float(offset_input.text())
 
         offset_input.valueChanged.connect(updateOffset)
 
         scale_label = QtWidgets.QLabel('Scale')
         scale_input = QtWidgets.QDoubleSpinBox()
-        scale_input.setValue(self.Bake.bakeScale)
+        scale_input.setValue(self.Bake.bake_data.bakeScale)
         scale_input.setSingleStep(0.001)
         scale_input.setDecimals(3)
 
         def updateScale():
-            self.Bake.bakeScale = float(scale_input.text())
+            self.Bake.bake_data.bakeScale = float(scale_input.text())
 
         scale_input.valueChanged.connect(updateScale)
 
@@ -211,27 +219,27 @@ class BakeTool(MayaQWidgetDockableMixin, QtWidgets.QWidget):
         given_radio_button = QtWidgets.QRadioButton('Given')
 
         pivot_radio_button.setChecked(True)
-        self.Bake.StartAtPivot()
+        self.Bake.start_at_pivot()
 
         def originChanged():
             if origin_radio_button.isChecked():
                 self.bakeRadioType = 'origin'
-                self.Bake.StartAtOrigin()
+                self.Bake.start_at_origin()
 
         def centerChanged():
             if center_radio_button.isChecked():
                 self.bakeRadioType = 'center'
-                self.Bake.StartAtCenter()
+                self.Bake.start_at_center()
 
         def pivotChanged():
             if pivot_radio_button.isChecked():
                 self.bakeRadioType = 'pivot'
-                self.Bake.StartAtPivot()
+                self.Bake.start_at_pivot()
 
         def givenChanged():
             if given_radio_button.isChecked():
                 self.bakeRadioType = 'given'
-                self.Bake.StartAtPoint(self.Bake.clampPoint)
+                self.Bake.start_at_point(self.Bake.bake_data.clampPoint)
 
         origin_radio_button.toggled.connect(originChanged)
         center_radio_button.toggled.connect(centerChanged)
@@ -259,10 +267,10 @@ class BakeTool(MayaQWidgetDockableMixin, QtWidgets.QWidget):
         x_input = QtWidgets.QLineEdit()
         x_input.setInputMask('0.000')
         x_input.setMaxLength(5)
-        x_input.setText(str(self.Bake.clampPoint[0]))
+        x_input.setText(str(self.Bake.bake_data.clampPoint[0]))
 
         def updateX():
-            self.Bake.clampPoint[0] = float(x_input.text())
+            self.Bake.bake_data.clampPoint[0] = float(x_input.text())
 
         x_input.textChanged.connect(updateX)
 
@@ -270,10 +278,10 @@ class BakeTool(MayaQWidgetDockableMixin, QtWidgets.QWidget):
         y_input = QtWidgets.QLineEdit()
         y_input.setInputMask('0.000')
         y_input.setMaxLength(5)
-        y_input.setText(str(self.Bake.clampPoint[1]))
+        y_input.setText(str(self.Bake.bake_data.clampPoint[1]))
 
         def updateY():
-            self.Bake.clampPoint[1] = float(y_input.text())
+            self.Bake.bake_data.clampPoint[1] = float(y_input.text())
 
         y_input.textChanged.connect(updateY)
 
@@ -281,10 +289,10 @@ class BakeTool(MayaQWidgetDockableMixin, QtWidgets.QWidget):
         z_input = QtWidgets.QLineEdit()
         z_input.setInputMask('0.000')
         z_input.setMaxLength(5)
-        z_input.setText(str(self.Bake.clampPoint[2]))
+        z_input.setText(str(self.Bake.bake_data.clampPoint[2]))
 
         def updateZ():
-            self.Bake.clampPoint[2] = float(z_input.text())
+            self.Bake.bake_data.clampPoint[2] = float(z_input.text())
 
         z_input.textChanged.connect(updateZ)
 
@@ -311,10 +319,10 @@ class BakeTool(MayaQWidgetDockableMixin, QtWidgets.QWidget):
         x_input = QtWidgets.QLineEdit()
         x_input.setInputMask('0.000')
         x_input.setMaxLength(5)
-        x_input.setText(str(self.Bake.clampDir[0]))
+        x_input.setText(str(self.Bake.bake_data.clampDir[0]))
 
         def updateX():
-            self.Bake.clampDir[0] = float(x_input.text())
+            self.Bake.bake_data.clampDir[0] = float(x_input.text())
 
         x_input.textChanged.connect(updateX)
 
@@ -322,10 +330,10 @@ class BakeTool(MayaQWidgetDockableMixin, QtWidgets.QWidget):
         y_input = QtWidgets.QLineEdit()
         y_input.setInputMask('0.000')
         y_input.setMaxLength(5)
-        y_input.setText(str(self.Bake.clampDir[1]))
+        y_input.setText(str(self.Bake.bake_data.clampDir[1]))
 
         def updateY():
-            self.Bake.clampDir[1] = float(y_input.text())
+            self.Bake.bake_data.clampDir[1] = float(y_input.text())
 
         y_input.textChanged.connect(updateY)
 
@@ -333,10 +341,10 @@ class BakeTool(MayaQWidgetDockableMixin, QtWidgets.QWidget):
         z_input = QtWidgets.QLineEdit()
         z_input.setInputMask('0.000')
         z_input.setMaxLength(5)
-        z_input.setText(str(self.Bake.clampDir[2]))
+        z_input.setText(str(self.Bake.bake_data.clampDir[2]))
 
         def updateZ():
-            self.Bake.clampDir[2] = float(z_input.text())
+            self.Bake.bake_data.clampDir[2] = float(z_input.text())
 
         z_input.textChanged.connect(updateZ)
 
@@ -366,22 +374,22 @@ class BakeTool(MayaQWidgetDockableMixin, QtWidgets.QWidget):
         alpha_checkbox = QtWidgets.QCheckBox('Alpha')
 
         def updateG():
-            self.Bake.cG = green_checkbox.isChecked()
+            self.Bake.bake_data.cG = green_checkbox.isChecked()
 
         green_checkbox.stateChanged.connect(updateG)
 
         def updateR():
-            self.Bake.cR = red_checkbox.isChecked()
+            self.Bake.bake_data.cR = red_checkbox.isChecked()
 
         red_checkbox.stateChanged.connect(updateR)
 
         def updateB():
-            self.Bake.cB = blue_checkbox.isChecked()
+            self.Bake.bake_data.cB = blue_checkbox.isChecked()
 
         blue_checkbox.stateChanged.connect(updateB)
 
         def updateA():
-            self.Bake.cA = alpha_checkbox.isChecked()
+            self.Bake.bake_data.cA = alpha_checkbox.isChecked()
 
         alpha_checkbox.stateChanged.connect(updateA)
 
@@ -414,22 +422,22 @@ class BakeTool(MayaQWidgetDockableMixin, QtWidgets.QWidget):
         alpha_checkbox = QtWidgets.QCheckBox('Alpha')
 
         def updateG():
-            self.Bake.rG = green_checkbox.isChecked()
+            self.Bake.bake_data.rG = green_checkbox.isChecked()
 
         green_checkbox.stateChanged.connect(updateG)
 
         def updateR():
-            self.Bake.rR = red_checkbox.isChecked()
+            self.Bake.bake_data.rR = red_checkbox.isChecked()
 
         red_checkbox.stateChanged.connect(updateR)
 
         def updateB():
-            self.Bake.rB = blue_checkbox.isChecked()
+            self.Bake.bake_data.rB = blue_checkbox.isChecked()
 
         blue_checkbox.stateChanged.connect(updateB)
 
         def updateA():
-            self.Bake.rA = alpha_checkbox.isChecked()
+            self.Bake.bake_data.rA = alpha_checkbox.isChecked()
 
         alpha_checkbox.stateChanged.connect(updateA)
 
@@ -458,7 +466,7 @@ class BakeTool(MayaQWidgetDockableMixin, QtWidgets.QWidget):
         h_layout.addWidget(clamp_checkbox)
 
         def updateMirror():
-            self.Bake.mirror = clamp_checkbox.isChecked()
+            self.Bake.bake_data.mirror = clamp_checkbox.isChecked()
 
         clamp_checkbox.stateChanged.connect(updateMirror)
 
@@ -485,8 +493,8 @@ class BakeTool(MayaQWidgetDockableMixin, QtWidgets.QWidget):
         h_layout.addWidget(white_button)
         self.inner_layout.addLayout(h_layout)
 
-        black_button.clicked.connect(self.Bake.bakeBlack)
-        white_button.clicked.connect(self.Bake.bakeWhite)
+        black_button.clicked.connect(self.Bake.bake_black)
+        white_button.clicked.connect(self.Bake.bake_white)
 
     def bakeButton(self):
         h_layout = QtWidgets.QHBoxLayout()
@@ -500,17 +508,17 @@ class BakeTool(MayaQWidgetDockableMixin, QtWidgets.QWidget):
             clampEasing = Easing.EasingDictionary()[self.bake_clamp_easing_combobox.currentText()]
             t = self.bake_type_combobox.currentText()
             if 'Radial In' in t:
-                self.Bake.RadialBounds(bakeEasing, clampEasing, inner=True)
+                self.Bake.radial_bounds(bakeEasing, clampEasing, inner=True)
             if 'Radial Out' in t:
-                self.Bake.RadialBounds(bakeEasing, clampEasing, inner=False)
+                self.Bake.radial_bounds(bakeEasing, clampEasing, inner=False)
             if 'Spherical In' in t:
-                self.Bake.SphericalBounds(bakeEasing, clampEasing, inner=True)
+                self.Bake.spherical_bounds(bakeEasing, clampEasing, inner=True)
             if 'Spherical Out' in t:
-                self.Bake.SphericalBounds(bakeEasing, clampEasing, inner=False)
+                self.Bake.spherical_bounds(bakeEasing, clampEasing, inner=False)
             if 'Box' in t:
-                self.Bake.BoxBounds(bakeEasing, clampEasing)
+                self.Bake.box_bounds(bakeEasing, clampEasing)
             if 'Branching' in t:
-                self.Bake.Branching(bakeEasing)
+                self.Bake.branching(bakeEasing)
             self.Bake.objects = None
 
         bake_button.clicked.connect(bake)
