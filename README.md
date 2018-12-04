@@ -35,7 +35,7 @@ def Loader():
 	except:
 		pass
 	import Maya_UtilLib
-	Maya_UtilLib.Menu.Draw()
+	Maya_UtilLib.Menu.draw()
 
 utils.executeDeferred('Loader()')
 #--------------------------------------------------------------------------------

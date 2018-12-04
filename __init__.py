@@ -5,12 +5,13 @@ from functools import partial
 
 
 def MenuItem():
-    pm.menuItem(parent='CustomTools', subMenu=True, tearOff=True, label='Misc')
+    pm.menuItem(parent=Maya_UtilLib.ui_name, subMenu=True, tearOff=True, label='Misc')
     pm.menuItem(label='Vertex Color', command=partial(Gradient.UI.open))
 
 
 def AddMenuItem():
-    Maya_UtilLib.Menu.AddModuleMenu(module='Maya_VertexColor', menuFunc=MenuItem)
-    Maya_UtilLib.Menu.Draw()
+    Maya_UtilLib.Menu.add_module_menu(module='Maya_VertexColor', menu_func=MenuItem)
+    Maya_UtilLib.Menu.draw()
+
 
 AddMenuItem()
