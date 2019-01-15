@@ -1,12 +1,10 @@
 from maya.app.general.mayaMixin import MayaQWidgetDockableMixin
 from maya import OpenMayaUI as omui
 from PySide2 import QtGui, QtCore, QtWidgets
-from shiboken2 import wrapInstance
 
 from Maya_VertexColor.Gradient import Bake
 from Maya_UtilLib import Easing
 import pymel.core as pc
-import Maya_UtilLib
 import weakref
 
 gradientMixinWindow = None
@@ -62,8 +60,8 @@ class BakeTool(MayaQWidgetDockableMixin, QtWidgets.QWidget):
 
         super(BakeTool, self).__init__(parent=parent)
 
-        BakeTool.delete_instance()
-        self.__class__.instances.append(weakref.proxy(self))
+        # BakeTool.delete_instance()
+        # self.__class__.instances.append(weakref.proxy(self))
 
         self.setObjectName(self.__class__.toolName)
 
@@ -77,7 +75,7 @@ class BakeTool(MayaQWidgetDockableMixin, QtWidgets.QWidget):
         self.main_layout = QtWidgets.QVBoxLayout()
         self.main_layout.setAlignment(QtCore.Qt.AlignTop)
 
-        self.inner_layout = QtWidgets.QVBoxLayout(self)
+        self.inner_layout = QtWidgets.QVBoxLayout()
         self.inner_layout.setAlignment(QtCore.Qt.AlignTop)
 
         self.font = QtGui.QFont()
@@ -107,17 +105,17 @@ class BakeTool(MayaQWidgetDockableMixin, QtWidgets.QWidget):
         self.setLayout(self.main_layout)
         self.show(dockable=True)
 
-    @staticmethod
-    def delete_instance():
-        for ins in BakeTool.instances:
-            try:
-                ins.setParent(None)
-                ins.deleteLater()
-            except:
-                pass
-
-            BakeTool.instances.remove(ins)
-            del ins
+    # @staticmethod
+    # def delete_instance():
+    #     for ins in BakeTool.instances:
+    #         try:
+    #             ins.setParent(None)
+    #             ins.deleteLater()
+    #         except:
+    #             pass
+    #
+    #         BakeTool.instances.remove(ins)
+    #         del ins
 
     # def delete_instance(self):
     #     maya_main_window = Maya_UtilLib.main_window()
@@ -531,15 +529,15 @@ class BakeTool(MayaQWidgetDockableMixin, QtWidgets.QWidget):
             clampEasing = Easing.EasingDictionary()[self.bake_clamp_easing_combobox.currentText()]
             t = self.bake_type_combobox.currentText()
             if 'Radial In' in t:
-                self.Bake.radial_bounds(bakeEasing, clampEasing, inner=True)
+                self.Bake.radial_bounds(easing=bakeEasing, clamp_easing=clampEasing, inner=True)
             if 'Radial Out' in t:
-                self.Bake.radial_bounds(bakeEasing, clampEasing, inner=False)
+                self.Bake.radial_bounds(easing=bakeEasing, clamp_easing=clampEasing, inner=False)
             if 'Spherical In' in t:
-                self.Bake.spherical_bounds(bakeEasing, clampEasing, inner=True)
+                self.Bake.spherical_bounds(easing=bakeEasing, clamp_easing=clampEasing, inner=True)
             if 'Spherical Out' in t:
-                self.Bake.spherical_bounds(bakeEasing, clampEasing, inner=False)
+                self.Bake.spherical_bounds(easing=bakeEasing, clamp_easing=clampEasing, inner=False)
             if 'Box' in t:
-                self.Bake.box_bounds(bakeEasing, clampEasing)
+                self.Bake.box_bounds(easing=bakeEasing, clamp_easing=clampEasing,)
             if 'Branching' in t:
                 self.Bake.branching(bakeEasing)
             self.Bake.objects = None

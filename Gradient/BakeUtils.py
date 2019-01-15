@@ -147,6 +147,13 @@ def paint_colors(bake_data, mesh, index, value):
     mesh.vtx[index].setColor(color)
 
 
+"""
+What should be happening in these bakes is that we have a distance from point gradient
+Where the value of that is modified by a distance from plane (ground) normal, where intersecting it nulls paint value
+Then we can have a mirror distance gradient.
+"""
+
+
 def bake_radial_bounds(bake_data,
                        mesh,
                        update_notify,
@@ -167,26 +174,26 @@ def bake_radial_bounds(bake_data,
         angle = bake_data.clampDir.angle(vertex_dir)
 
         if angle < pi / 2.0:
+            # the smaller the angle the fuller the contribution
             angle_ratio = 1.0 - (angle / (pi / 2.0))
         else:
-            angle_ratio = angle / pi
+            if bake_data.mirror:
+                angle = bake_data.clampDir.angle(-vertex_dir)
+                angle_ratio = 1.0 - (angle / (pi / 2.0))
+            else:
+                angle_ratio = 0
 
         intersect_point = Utils.VMath.project_point_onto_scaled_sphere(bounds, points[i], inner)
 
-        # check clamp against point and vector plane
-        if angle > pi / 2.0:
-            if not bake_data.mirror:
-                value = 0.0
-            else:
-                value = (vertex_dir.length() / (intersect_point - point).length())
-                #value = (value + angle_ratio) / 2.0
-        else:
-            if debug_locators:
-                pmc.spaceLocator(name='intersection', p=intersect_point)
-                pmc.select(clear=True)
-            value = (vertex_dir.length() / (intersect_point - point).length())
-            if bake_data.clampDecay:
-                value = (value + angle_ratio) / 2.0
+        if debug_locators:
+            pmc.spaceLocator(name='intersection', p=intersect_point)
+            pmc.select(clear=True)
+
+        # the assumption here is that the length of vertex_dir is some portion of the vector of the intersect and point
+        value = (vertex_dir.length() / (intersect_point - point).length())
+
+        if bake_data.clampDecay:
+            value = (value + angle_ratio) / 2.0
 
         value = bake_data.easing(value)
 
